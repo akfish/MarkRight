@@ -1,0 +1,1 @@
+{"version":3,"sources":["compiler/parser.coffee"],"names":[],"mappings":"AAAA,IAAA,MAAA;;AAAA,MAAM,CAAC,OAAP,GACM;AACS,EAAA,gBAAA,GAAA,CAAb;;gBAAA;;IAFF,CAAA","file":"compiler/parser.js","sourceRoot":"/source/","sourcesContent":["module.exports =\nclass Parser\n  constructor: ->\n"]}

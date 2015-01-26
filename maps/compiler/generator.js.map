@@ -1,0 +1,1 @@
+{"version":3,"sources":["compiler/generator.coffee"],"names":[],"mappings":"AAAA,IAAA,SAAA;;AAAA,MAAM,CAAC,OAAP,GACM;AACS,EAAA,mBAAA,GAAA,CAAb;;mBAAA;;IAFF,CAAA","file":"compiler/generator.js","sourceRoot":"/source/","sourcesContent":["module.exports =\nclass Generator\n  constructor: ->\n"]}

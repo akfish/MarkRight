@@ -1,0 +1,1 @@
+{"version":3,"sources":["core/language-pack.coffee"],"names":[],"mappings":"AAAA,IAAA,YAAA;;AAAA,MAAM,CAAC,OAAP,GACM;AACS,EAAA,sBAAE,EAAF,GAAA;AAAO,IAAN,IAAC,CAAA,KAAA,EAAK,CAAP;EAAA,CAAb;;sBAAA;;IAFF,CAAA","file":"core/language-pack.js","sourceRoot":"/source/","sourcesContent":["module.exports =\nclass LanguagePack\n  constructor: (@ns) ->\n"]}
