@@ -7,6 +7,7 @@ watch       = require 'gulp-watch'
 plumber     = require 'gulp-plumber'
 browserify  = require 'gulp-browserify'
 mocha       = require 'gulp-mocha'
+rename      = require 'gulp-rename'
 del         = require 'del'
 
 # Config
@@ -47,8 +48,13 @@ gulp.task 'test', ->
     .pipe mocha(reporter: 'spec')
 
 gulp.task 'browser', ['coffee'], ->
-  gulp.src 'lib/markright.js'
-    .pipe browserify()
+  gulp.src 'coffee/markright.coffee', read: false
+    .pipe browserify(
+      transform: ['coffeeify']
+      extensions: ['.coffee']
+      debug: true
+    )
+    .pipe rename('markright.js')
     .pipe gulp.dest(browser_dst)
 
 gulp.task 'default', ['coffee', 'test']
