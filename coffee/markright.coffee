@@ -6,4 +6,6 @@ GFM = require './lang/gfm'
 core = new Core()
 gfm = new GFM()
 
-module.exports = new Compiler([core, gfm])
+Compiler.Default = new Compiler([core, gfm])
+
+module.exports = Compiler

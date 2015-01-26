@@ -45,7 +45,9 @@ gulp.task 'watch', ->
 
 gulp.task 'test', ->
   gulp.src tests_src, read: false
-    .pipe mocha(reporter: 'spec')
+    .pipe mocha(
+      reporter: 'spec'
+    )
 
 gulp.task 'browser', ['coffee'], ->
   gulp.src 'coffee/markright.coffee', read: false

@@ -21,6 +21,7 @@
     "expect.js": "~0.3.1",
     "del": "~1.1.1",
     "coffeeify": "~1.0.0",
-    "gulp-rename": "~1.2.0"
+    "gulp-rename": "~1.2.0",
+    "commonmark": "~0.17.0"
   }
 }
