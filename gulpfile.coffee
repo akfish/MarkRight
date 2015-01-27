@@ -10,17 +10,18 @@ mocha       = require 'gulp-mocha'
 rename      = require 'gulp-rename'
 del         = require 'del'
 
+
 # Config
 # config = require './config'
 
 # Sources
 coffee_src    = './coffee/**/*.coffee'
-tests_src     = './tests/**/*.coffee'
+test_src     = './test/**/*.coffee'
 
 # Destinations
 lib_dst       = 'lib/'
 browser_dst   = 'dist/'
-map_dst       = 'maps/'
+map_dst       = 'map/'
 
 watch_sources = ->
   gulp.watch coffee_src, ['coffee']
@@ -44,7 +45,7 @@ gulp.task 'watch', ->
   watch_sources()
 
 gulp.task 'test', ->
-  gulp.src tests_src, read: false
+  gulp.src test_src, read: false
     .pipe mocha(
       reporter: 'spec'
     )
