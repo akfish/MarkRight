@@ -5,6 +5,7 @@ parse_spec = (src) ->
   spec_src = src
     .replace(/\r\n?/g, "\n")
     .replace(/^<!-- END TESTS -->(.|[\n])*/m, '')
+    .replace(/→/gm, '\t')
 
   current_section = ""
   test_id = 0
