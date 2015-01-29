@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset='UTF-8'>
+  <title>MarkRight Documentation</title>
+  <script src='../javascript/application.js'></script>
+  <script src='../javascript/search.js'></script>
+  <link rel='stylesheet' href='../stylesheets/application.css' type='text/css'>
+</head>
+  <body>
+    <div id='base' data-path='../'></div>
+<div id='header'>
+  <div id='menu'>
+    <a href='../extra/README.md.html' title='MarkRight'>
+      MarkRight
+    </a>
+    &raquo;
+    <a href='../alphabetical_index.html' title='Index'>
+      Index
+    </a>
+    &raquo;
+    <span class='title'>Parser</span>
+  </div>
+</div>
+    <div id='content'>
+      <h1>
+        Class:
+        Parser
+      </h1>
+      <table class='box'>
+        <tr>
+          <td>Defined in:</td>
+          <td>coffee\compiler\parser.coffee</td>
+        </tr>
+      </table>
+      <h2>Overview</h2>
+      <div class='docstring'>
+  <p>The parser processes input Markdown source and generates AST
+(abastract syntax tree) for the generator to consume.</p><h2 id="terminology">Terminology</h2>
+<ul>
+<li><strong>Documents</strong> are top level representations of parsed Markdown files.</li>
+<li><strong>Solid blocks</strong> are continuous document parts consist of only leaf blocks.</li>
+<li><strong>Fluid blocks</strong> are continuous document parts that contains contents of container blocks with closing elements yet to be determined.</li>
+</ul><p>See <a href='../class/LanguagePack.html'>LanguagePack</a> for language spec related terminology.</p><h2 id="parsing-strategy">Parsing Strategy</h2><p>The parser applies rules in a determined order (a.k.a. precedence) to avoid any
+ambiguity. The elements take their precedence in following order:</p><ol>
+<li>Container blocks</li>
+<li>Leaf blocks</li>
+<li>Inline elements</li>
+</ol><p>The parser processes a document in 2 passes:</p><ol>
+<li>Determine block structures and assign un-parsed source to each block tokens</li>
+<li>Parse inline tokens of each blocks</li>
+</ol>
+<h2 id="block-parsing">Block Parsing</h2><p>Block parsing is implemented in <a href='../class/Parser.html#_parseBlocks-dynamic'>Parser#_parseBlocks</a>.
+Unlike other Markdown parser implementations, MarkRight parser does
+not require matched rules to be anchored at the begining of the stream.
+Instead, <a href='../class/Parser.html#___parseOneBlock-dynamic'>Parser#___parseOneBlock</a> applies rules from highest precedence to
+lowest and returns the first match no matter where the match&#39;s location is.</p><p>It is expeced that the first match usually occurs in the middle thus spliting
+the stream into three parts:</p><pre><code>+---------------------------+ Document Begin
+|                           |
+|                           |
+|        Parsed             |
+|                           |
+|                           |
++---------------------------+ Offset
+|                           |
+|                           |
+|       Residual Before     |
+|                           |
+|                           |
++---------------------------+
+|                           |
+|       First Match         |
+|                           |
++---------------------------+
+|                           |
+|                           |
+|                           |
+|       Residual After      |
+|                           |
+|                           |
+|                           |
+|                           |
++---------------------------+ Document End
+</code></pre><p>If the <code>First Match</code> is a leaf block, the parser can safely assume that the
+entire stream is one solid block. Hence both residual blocks are solid too.
+Thus the parsing can be achived by recusively parse and split the stream into
+smaller and smaller blocks until the entire stream is parsed.
+This is done by <a href='../class/Parser.html#__parseSolidBlocks-dynamic'>Parser#__parseSolidBlocks</a>.</p><p>If the <code>First Match</code> is a container block start token, the <code>Residual Before</code> is
+known to be a solid block and can be parsed with <a href='../class/Parser.html#__parseSolidBlocks-dynamic'>Parser#__parseSolidBlocks</a>.
+The <code>Residual After</code> would be a fluid block:</p><pre><code>+---------------------------+
+|                           |
+|       First Match         | &lt;---+ Container block start token
+|                           |       (e.g. &#39;&gt; &#39; for a blockquote)
++---------------------------+
+X                           X
+X       Content of          X &lt;---+ Residual After (Fluid Block)
+X       Container Block     X
+X                           X
+X---------------------------X ----&gt; New offset for next iteration
+X                           X
+X       Un-parsed           X
+X                           X
++---------------------------+ Document End
+</code></pre><p>A fluid block is parsed by <a href='../class/Parser.html#__parseFluidBlocks-dynamic'>Parser#__parseFluidBlocks</a>. It parses the fluid
+block linearly and looks for lines start with content block delimiter (e.g.
+&#39;&gt; &#39; for blockquotes or correct level of indentation for list items). Delimiters
+are stripped before the contents are aggregated into one new block for later
+parsing. A new line without a container block delimiter can either be the end
+of current container block or should be added to the container accroding to
+&#39;laziness&#39; rule. The parsing is not complete until either the end of container
+block or the end of the document is encountered.</p><pre><code>+---+----------------------+
+|   |                      |
+| * | Content              |
+|   |                      |
++---+----------------------+ &lt;--+ Possible end of content block
+|                          |
+|     Next element without |
+|     delimiter            |
+|                          |
++--------------------------+
+|                          |
+|     Un-parsed            |
+|                          |
++--------------------------+
+
+* Container block delimiter
+</code></pre><p>After each iteration, the <code>offset</code> is advanced and the whole process starts
+again until the end of the document.</p><h2 id="inline-element-parsing">Inline Element Parsing</h2><p>Inline element parsing (<a href='../class/Parser.html#_parseInline-dynamic'>Parser#_parseInline</a>) is trival.
+The stategy is exactly the same as solid block parsing.</p>
+</div>
+<div class='tags'>
+</div>
+      <h2>Instance Method Summary</h2>
+      <ul class='summary'>
+  <li>
+    <span class='signature'>
+      <a href='#parse-dynamic'>
+        #
+(Array)
+<b>parse</b><span>(src)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      Parses Markdown source into AST 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_parseBlocks-dynamic'>
+        #
+(Array)
+<b>_parseBlocks</b><span>(src)</span>
+      </a>
+    </span>
+    <span class='note private title'>Private</span>
+    <span class='desc'>
+      Parses block structures 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_tryParseContainerBlockStartToken-dynamic'>
+        #
+(Token)
+<b>_tryParseContainerBlockStartToken</b><span>(offset, src)</span>
+      </a>
+    </span>
+    <span class='note private title'>Private</span>
+    <span class='desc'>
+      Parses the source starting from given offset and tries to find the first container block start token
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#__parseSolidBlocks-dynamic'>
+        #
+(Array&lt;Token&gt;)
+<b>__parseSolidBlocks</b><span>(begin, end, src)</span>
+      </a>
+    </span>
+    <span class='note private title'>Private</span>
+    <span class='desc'>
+      Parses the specified document region as a solid block 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#__parseFluidBlocks-dynamic'>
+        #
+(Array&lt;Token&gt;)
+<b>__parseFluidBlocks</b><span>(start_token, src)</span>
+      </a>
+    </span>
+    <span class='note private title'>Private</span>
+    <span class='desc'>
+      Parses the specified document region as a fluid block 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#___parseOneBlock-dynamic'>
+        #
+(Token)
+<b>___parseOneBlock</b><span>()</span>
+      </a>
+    </span>
+    <span class='note private title'>Private</span>
+    <span class='desc'>
+      Match block rules from highest precedence to lowest against the specified document region and returns immediately on the first match.
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_parseInline-dynamic'>
+        #
+(Array)
+<b>_parseInline</b><span>(ast)</span>
+      </a>
+    </span>
+    <span class='note private title'>Private</span>
+    <span class='desc'>
+      Parses inline elements 
+    </span>
+  </li>
+</ul>
+      <h2>Constructor Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='constructor-dynamic'>
+      #
+(void)
+<b>constructor</b><span>()</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Creates a <a href='../class/Parser.html'>Parser</a> instance</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+</div>
+      <h2>Instance Method Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='parse-dynamic'>
+      #
+(Array)
+<b>parse</b><span>(src)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Parses Markdown source into AST</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>src</span>
+      <span class='type'>
+        (
+          <tt>string</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Markdown source </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Array</tt>
+      )
+      &mdash;
+      <span class='desc'>AST </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_parseBlocks-dynamic'>
+      #
+(Array)
+<b>_parseBlocks</b><span>(src)</span>
+      <span class='note private'>Private</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Parses block structures</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>src</span>
+      <span class='type'>
+        (
+          <tt>string</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Markdown source </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Array</tt>
+      )
+      &mdash;
+      <span class='desc'>AST </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_tryParseContainerBlockStartToken-dynamic'>
+      #
+(Token)
+<b>_tryParseContainerBlockStartToken</b><span>(offset, src)</span>
+      <span class='note private'>Private</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Parses the source starting from given offset and tries to find the first
+container block start token</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>offset</span>
+      <span class='type'>
+        (
+          <tt>int</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Offset value </span>
+    </li>
+    <li>
+      <span class='name'>src</span>
+      <span class='type'>
+        (
+          <tt>string</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Markdown source </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt><a href='../class/Token.html'>Token</a></tt>
+      )
+      &mdash;
+      <span class='desc'>Matched token (nullable) </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='__parseSolidBlocks-dynamic'>
+      #
+(Array&lt;Token&gt;)
+<b>__parseSolidBlocks</b><span>(begin, end, src)</span>
+      <span class='note private'>Private</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Parses the specified document region as a solid block</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>begin</span>
+      <span class='type'>
+        (
+          <tt>int</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Start index of the region </span>
+    </li>
+    <li>
+      <span class='name'>end</span>
+      <span class='type'>
+        (
+          <tt>int</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Last index of the region </span>
+    </li>
+    <li>
+      <span class='name'>src</span>
+      <span class='type'>
+        (
+          <tt>src</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Markdown source </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Array&lt;Token&gt;</tt>
+      )
+      &mdash;
+      <span class='desc'>AST of specified region </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='__parseFluidBlocks-dynamic'>
+      #
+(Array&lt;Token&gt;)
+<b>__parseFluidBlocks</b><span>(start_token, src)</span>
+      <span class='note private'>Private</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Parses the specified document region as a fluid block</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>start_token</span>
+      <span class='type'>
+        (
+          <tt><a href='../class/Token.html'>Token</a></tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>The start token of a container block </span>
+    </li>
+    <li>
+      <span class='name'>src</span>
+      <span class='type'>
+        (
+          <tt>string</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Markdown source </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Array&lt;Token&gt;</tt>
+      )
+      &mdash;
+      <span class='desc'>AST of specified region </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='___parseOneBlock-dynamic'>
+      #
+(Token)
+<b>___parseOneBlock</b><span>()</span>
+      <span class='note private'>Private</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Match block rules from highest precedence to lowest against the specified
+document region and returns immediately on the first match.</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>begin</span>
+      <span class='type'>
+        (
+          <tt>int</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Start index of the region </span>
+    </li>
+    <li>
+      <span class='name'>end</span>
+      <span class='type'>
+        (
+          <tt>int</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Last index of the region </span>
+    </li>
+    <li>
+      <span class='name'>src</span>
+      <span class='type'>
+        (
+          <tt>src</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Markdown source </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt><a href='../class/Token.html'>Token</a></tt>
+      )
+      &mdash;
+      <span class='desc'>The first match </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_parseInline-dynamic'>
+      #
+(Array)
+<b>_parseInline</b><span>(ast)</span>
+      <span class='note private'>Private</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Parses inline elements</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>ast</span>
+      <span class='type'>
+        (
+          <tt>Array</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>AST with un-parsed block nodes only </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Array</tt>
+      )
+      &mdash;
+      <span class='desc'>Fully parsed AST </span>
+    </li>
+  </ul>
+</div>
+  </div>
+</div>
+    </div>
+    <div id='footer'>
+  January 29, 15 19:43:01 by
+  <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
+    Codo
+  </a>
+  2.0.9
+  &#10034;
+  Press H to see the keyboard shortcuts
+  &#10034;
+  <a href='http://twitter.com/netzpirat' target='_parent'>@netzpirat</a>
+  &#10034;
+  <a href='http://twitter.com/_inossidabile' target='_parent'>@_inossidabile</a>
+</div>
+<iframe id='search_frame'></iframe>
+<div id='fuzzySearch'>
+  <input type='text'>
+  <ol></ol>
+</div>
+<div id='help'>
+  <p>
+    Quickly fuzzy find classes, mixins, methods, file:
+  </p>
+  <ul>
+    <li>
+      <span>T</span>
+      Open fuzzy finder dialog
+    </li>
+  </ul>
+  <p>
+    Control the navigation frame:
+  </p>
+  <ul>
+    <li>
+      <span>L</span>
+      Toggle list view
+    </li>
+    <li>
+      <span>C</span>
+      Show class list
+    </li>
+    <li>
+      <span>I</span>
+      Show mixin list
+    </li>
+    <li>
+      <span>F</span>
+      Show file list
+    </li>
+    <li>
+      <span>M</span>
+      Show method list
+    </li>
+    <li>
+      <span>E</span>
+      Show extras list
+    </li>
+  </ul>
+  <p>
+    You can focus and blur the search input:
+  </p>
+  <ul>
+    <li>
+      <span>S</span>
+      Focus search input
+    </li>
+    <li>
+      <span>Esc</span>
+      Blur search input
+    </li>
+  </ul>
+</div>
+  </body>
+</html>

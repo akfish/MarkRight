@@ -1,0 +1,9 @@
+--name       "MarkRight"
+--readme     README.md
+--title      "MarkRight Documentation"
+--private
+--quiet
+--extension  coffee
+--output     ./doc
+./coffee
+-
