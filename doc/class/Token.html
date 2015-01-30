@@ -33,9 +33,124 @@
           <td>coffee\core\token.coffee</td>
         </tr>
       </table>
+      <h2>Overview</h2>
+      <div class='docstring'>
+  <div class='note todo'>
+    <strong>TODO:</strong>
+    Outline properties 
+  </div>
+  <div class='note todo'>
+    <strong>TODO:</strong>
+    Quadtree implementation 
+  </div>
+  <div class='note todo'>
+    <strong>TODO:</strong>
+    Token Location 
+  </div>
+  <p>Tokens are building blocks of parsed documents. Each rule is evaluated and
+capture groups are transformed into tokens. For information on how tokens
+are emitted from language rules, see <a href='../class/LanguagePack.html'>LanguagePack</a>.</p><p>A token contains necessary information to represent a Markdown element,
+including its location in source code, data fields and etc. For simplicity,
+MarkRight uses tokens as AST nodes directly instead of creating new ones.</p><h2 id="token-hierarchies">Token Hierarchies</h2><p>Tokens are connected with each other in a few diffrent ways to form diffrent
+representations of the same document.</p><h3 id="linear-list">Linear List</h3><p>Tokens are chained together in a double-linked list fasion for linear access.
+Each token holds a {Token#prev} and {Token#next} fields linking to tokens
+before and after.</p><p>The order is determined by token&#39;s position in the document. An element may
+correspond to one parent token for the whole element as well as a few
+delimiter children tokens to indicate boundaries. In such case, the parent
+token comes between the first pair of matched delimiters.</p><h3 id="ast">AST</h3><p>Tokens can also build an abastract syntax tree, with {Token#parent} field
+pointing to one&#39;s direct parent and {Token#children} holds an array of
+children. Children are also chained together in a double-linked list with
+{Token#prevSibling} and {Token#nextSibling}. A single document token is used
+as the parent for all top level tokens to form a single-root structure.</p><h3 id="outline">Outline</h3><p>Heading tokens are linked into a tree to represent the logic structure of a
+document. Each heading governs a section under itself and holds elements as
+section content. (Not implemented)</p><h3 id="quadtree">Quadtree</h3><p>Tokens are also indexed spatially with quadtree. It is usefully for editor
+developers to look up token by cursor locations.</p>
+</div>
+<div class='tags'>
+</div>
+      <h2>Property Summary</h2>
+      <dl class='properties'>
+        <dt id='prev-property'>
+          <span class='signature'>
+            (Token)
+            <b>
+              prev
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          The previous token in document 
+        </dd>
+        <dt id='next-property'>
+          <span class='signature'>
+            (Token)
+            <b>
+              next
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          The next token in document 
+        </dd>
+        <dt id='parent-property'>
+          <span class='signature'>
+            (Token)
+            <b>
+              parent
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          The parent token 
+        </dd>
+        <dt id='children-property'>
+          <span class='signature'>
+            (Array&lt;Token&gt;)
+            <b>
+              children
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          The chilren 
+        </dd>
+        <dt id='firstChild-property'>
+          <span class='signature'>
+            (Token)
+            <b>
+              firstChild
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          The first child 
+        </dd>
+        <dt id='prevSibling-property'>
+          <span class='signature'>
+            (Token)
+            <b>
+              prevSibling
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          The previous token under the same parent 
+        </dd>
+        <dt id='nextSibling-property'>
+          <span class='signature'>
+            (Token)
+            <b>
+              nextSibling
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          The next token under the same parent 
+        </dd>
+      </dl>
     </div>
     <div id='footer'>
-  January 30, 15 17:23:05 by
+  January 31, 15 09:53:35 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
