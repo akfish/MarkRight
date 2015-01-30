@@ -1,5 +1,8 @@
 RuleBuilder = require './rule-builder'
 
+###
+Base class for language packs
+###
 module.exports =
 class LanguagePack
   constructor: (@ns) ->

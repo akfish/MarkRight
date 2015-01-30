@@ -1,1 +1,1 @@
-{"version":3,"sources":["core/token.coffee"],"names":[],"mappings":"AAwC6C","file":"core/token.js","sourceRoot":"/source/","sourcesContent":[""]}
+{"version":3,"sources":["core/token.coffee"],"names":[],"mappings":"AAAA;AAAA;;GAAA;AAAA,IAAA,KAAA;;AAAA,MAGM,CAAC,OAAP,GACM;qBAAN;;eAAA;;IAJA,CAAA","file":"core/token.js","sourceRoot":"/source/","sourcesContent":["###\nTokens are building blocks of AST (abastract syntax tree).\n###\nmodule.exprots =\nclass Token\n"]}
