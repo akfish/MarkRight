@@ -44,7 +44,7 @@ gulp.task 'coffee', ->
 gulp.task 'watch', ->
   watch_sources()
 
-gulp.task 'test', ->
+gulp.task 'test', ['coffee', 'browser'], ->
   gulp.src test_src, read: false
     .pipe mocha(
       reporter: 'spec'
@@ -60,4 +60,4 @@ gulp.task 'browser', ['coffee'], ->
     .pipe rename('markright.js')
     .pipe gulp.dest(browser_dst)
 
-gulp.task 'default', ['coffee', 'test']
+gulp.task 'default', ['coffee', 'browser', 'test']

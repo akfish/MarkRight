@@ -5,14 +5,14 @@ class Core extends LanguagePack
   constructor: ->
     super 'core'
 
-    @decalreAlias '^',      /^\ {0, 3}/
-    @decalreAlias '$',      /$/
-    @decalreAlias ' ',      /\s+/
-    @decalreAlias '#',      /#{1, 6}/
-    @decalreAlias '- - -',  /([*+-]\s?){3,}/
-    @decalreAlias '===',    /[-=]{3,}/
-    @decalreAlias '->',     /^(\t|\ {4})/
-    @decalreAlias '```',    /[~`]{3,}/
+    @declareAlias '^',      /^\ {0, 3}/
+    @declareAlias '$',      /$/
+    @declareAlias ' ',      /\s+/
+    @declareAlias '#',      /#{1, 6}/
+    @declareAlias '- - -',  /([*+-]\s?){3,}/
+    @declareAlias '===',    /[-=]{3,}/
+    @declareAlias '->',     /^(\t|\ {4})/
+    @declareAlias '```',    /[~`]{3,}/
 
     @declareDelimiterPair '(', ')'
     @declareDelimiterPair '[', ']'
