@@ -1,21 +1,19 @@
 expect = require 'expect.js'
 path = require 'path'
 RuleBuilder = require '../lib/core/rule-builder'
+Emitter = require '../lib/core/emitter'
 
 describe 'Language Rule Builder', ->
+  emit = new Emitter()
   builder = new RuleBuilder()
   builder.declareAlias 'alias_1', 'foo'
   regex = null
   handler = null
+
   it "should build rule", ->
     {regex, handler} = builder.make ['#{1,6}', '\\s', '.*'],
-      1:
-        type: 'attribute'
-        id: 'level'
-        transform: (h) -> h.length
-      3:
-        type: 'content'
-        id: 'title'
+      1: emit.attribute 'level', (h) -> h.length
+      3: emit.content 'title'
     expect(regex).to.be.a(RegExp)
     expect(handler).to.be.a('function')
 
@@ -30,7 +28,7 @@ describe 'Language Rule Builder', ->
 
   it "should handle optional group"
   it "should handle delimiter pair"
-  
+
   describe 'Built rule', ->
     it "should work", ->
       heading_text = '#### This is a heading'

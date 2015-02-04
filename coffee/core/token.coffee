@@ -68,3 +68,14 @@ class Token
 
   # @property {Token} The next token under the same parent
   nextSibling: null
+
+#
+# @todo Add documentation
+module.exports.Def =
+class TokenDef
+  @Attribute: 'attribute'
+  @Content: 'content'
+  @Text: 'text'
+  @Delimiter: 'delimiter'
+
+  constructor: (@type, @id, @transform) ->

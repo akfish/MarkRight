@@ -1,10 +1,14 @@
 RuleBuilder = require './rule-builder'
+Emitter = require './emitter'
 
 ###
 Base class for language packs
 ###
 module.exports =
 class LanguagePack
+  # @property [Emitter] An {Emitter} instance
+  emit: new Emitter()
+
   constructor: (@ns) ->
     @_builder = new RuleBuilder()
 
@@ -17,9 +21,3 @@ class LanguagePack
   addBlockRule: (name, rule, emitter) ->
 
   addInlineRule: (name, rule, emitter) ->
-
-  emitAttribute: (name, transform) ->
-
-  emitContent: (name, transform) ->
-
-  emitText: (name, transform) ->

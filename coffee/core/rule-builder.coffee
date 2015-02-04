@@ -52,6 +52,8 @@ class RuleBuilder
         # TODO: use node.attachXxx accroding to d.type field
 
 
+  # @param {RegExp} rule
+  # @param {Object} emitter
   make: (rule, emitter) ->
     regex_src = ''
     group_index = 0

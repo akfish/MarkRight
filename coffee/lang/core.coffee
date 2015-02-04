@@ -23,18 +23,18 @@ class Core extends LanguagePack
     @addBlockRule 'rules', ['^', '- - -', '$']
 
     @addBlockRule 'atx_header', ['^', '#', ' ', /(.*)\s*/, '$'],
-      1: @emitAttribute 'level', (hash) -> hash.length
-      3: @emitContent   'title'
+      1: @emit.attribute 'level', (hash) -> hash.length
+      3: @emit.content   'title'
 
     @addBlockRule 'setext_header', ['^', /([^\s].*)\n/, '===', '$'],
-      1: @emitContent   'title'
-      2: @emitAttribute 'level', (r) -> if r[0] == '-' then 1 else 2
+      1: @emit.content   'title'
+      2: @emit.attribute 'level', (r) -> if r[0] == '-' then 1 else 2
 
     @addBlockRule 'indented_code', ['->', /(.*)/, '$'],
-      1: @emitText      'src'
+      1: @emit.text      'src'
 
     @addBlockRule 'fenced_code', ['^', '```', '$', /([^]*)/, '^', '```', '$'],
-      3: @emitText      'src'
+      3: @emit.text      'src'
 
     @addBlockRule 'html'
 
