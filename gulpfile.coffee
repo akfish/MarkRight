@@ -10,6 +10,8 @@ mocha       = require 'gulp-mocha'
 rename      = require 'gulp-rename'
 del         = require 'del'
 
+# Source map support
+require('source-map-support').install()
 
 # Config
 # config = require './config'
