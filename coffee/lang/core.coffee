@@ -36,13 +36,13 @@ class Core extends LanguagePack
     @addBlockRule 'fenced_code', ['^', '```', '$', /([^]*)/, '^', '```', '$'],
       3: @emit.text      'src'
 
-    @addBlockRule 'html'
+    @addBlockRule 'html', []
 
-    @addBlockRule 'link_ref'
+    @addBlockRule 'link_ref', []
 
-    @addBlockRule 'paragraph'
+    @addBlockRule 'paragraph', []
 
-    @addBlockRule 'blank_line'
+    @addBlockRule 'blank_line', []
 
     # TBD: aggregate `list_item` into one `*_list` element later
     #      or emit directly
@@ -50,10 +50,10 @@ class Core extends LanguagePack
     #
     # @addBlockRule 'unordered_list'
 
-    @addBlockRule 'list_item'
+    @addBlockRule 'list_item', []
 
-    @addInlineRule 'backslash_escape'
+    @addInlineRule 'backslash_escape', []
 
-    @addInlineRule 'entity'
+    @addInlineRule 'entity', []
 
-    @addInlineRule 'code_span'
+    @addInlineRule 'code_span', []

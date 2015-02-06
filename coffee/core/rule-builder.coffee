@@ -1,3 +1,4 @@
+{Def} = require './token'
 # {RuleBuilder} is used by {LanguagePack} internally to compile rules for parser
 # to execute.
 #
@@ -53,22 +54,47 @@ class RuleBuilder
 
 
   # @param {RegExp} rule
-  # @param {Object} emitter
-  make: (rule, emitter) ->
+  # @param {Object} capture_map
+  make: (rule, capture_map) ->
     regex_src = ''
     group_index = 0
     token_defs = []
+    in_optional_group = false
+    current_optional_group = ""
+
     for r, i in rule
-      token_def = emitter[i + 1]
-      should_capture = token_def?
+      token_def = capture_map?[i + 1]
+
+      could_capture = token_def?
 
       part = @_getRegexPart(r)
-      if should_capture
-        part = "(#{part})"
-        group_index++
-        token_def.group_index = group_index
-        token_defs.push token_def
-      regex_src += part
+      if could_capture
+        lazy_leaving = in_optional_group and not token_def.optional?
+        optional_changing = (token_def.optional ? false) != in_optional_group
+        if lazy_leaving or optional_changing
+          if not in_optional_group
+            # false -> true, entering optional group
+            group_index++
+            in_optional_group = true
+          else
+            # true -> false, leaving optional group
+            in_optional_group = false
+            regex_src += "(#{current_optional_group})?"
+            current_optional_group = ""
+        if token_def.type != Def.Nothing
+          group_index++
+          part = "(#{part})"
+          token_defs.push token_def
+          token_def.group_index = group_index
+      else if in_optional_group
+        # true -> false, leaving optional group
+        in_optional_group = false
+        regex_src += "(#{current_optional_group})?"
+        current_optional_group = ""
+      if in_optional_group
+        current_optional_group += part
+      else
+        regex_src += part
 
     result =
       regex: new RegExp(regex_src)

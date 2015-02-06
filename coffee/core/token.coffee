@@ -77,5 +77,9 @@ class TokenDef
   @Content: 'content'
   @Text: 'text'
   @Delimiter: 'delimiter'
-
-  constructor: (@type, @id, @transform) ->
+  @Nothing: 'nothing'
+  
+  constructor: (@type, @id, @transform, modifiers) ->
+    if modifiers?
+      for key, value of modifiers
+        @[key] = value
