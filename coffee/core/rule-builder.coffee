@@ -27,6 +27,8 @@ class RuleBuilder
   # @overload _getRegexPart(alias_or_literal)
   #   The argument is searched in the alias map first. If no match is found, it
   #   is then considered as a literal regex source string.
+  #   The literal string will be escaped. For example, `'^[()]'` is processed to
+  #   `/\^\[\(\)\]/`.
   #   @param [string] alias_or_literal
   # @overload _getRegexPart(regex)
   #   @param [RegExp] regex
@@ -35,9 +37,10 @@ class RuleBuilder
     t = typeof r
     if t == 'string'
       if r of @_aliasMap
+        # Alias
         return @_aliasMap[r]
-      # TODO: escape
-      return r
+      # Literal
+      return r.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
     else if t == 'object' and r instanceof RegExp
       return r.source
     throw new TypeError("#{r} is not a valid alias name, string or RegExp")

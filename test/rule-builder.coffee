@@ -11,7 +11,7 @@ describe 'Language Rule Builder', ->
   link_rule = null
 
   it "should build rule", ->
-    heading_rule = builder.make ['#{1,6}', '\\s', '.*'],
+    heading_rule = builder.make [/#{1,6}/, /\s/, /.*/],
       1: emit.attribute 'level', (h) -> h.length
       3: emit.content 'title'
     expect(heading_rule.regex).to.be.a(RegExp)
@@ -26,9 +26,16 @@ describe 'Language Rule Builder', ->
     expect(r_2).to.be 'not_an_alias'
     expect(r_3).to.be 'regex'
 
+  it "shoud support sub rules"#, ->
+    # builder.addSubRule 'LINK_DESC', [/[^\s]*/, /\s"/, '.*', /"/],
+    #   1: emit.attribute 'src'
+    #   2: emit.optional.nothing()
+    #   3: emit.optional.attribute 'title'
+    #   4: emit.optional.nothing()
+
   it "should support optional group", ->
     expected_source = '\\[(.*)\\]\\(([^\\s]*)(\\s"(.*)")?\\)'
-    r = [/\[/, '.*', /\]/, /\(/, /[^\s]*/, /\s"/, '.*', /"/, /\)/]
+    r = ['[', /.*/, ']', '(', /[^\s]*/, /\s"/, /.*/, '"', ')']
     link_rule = builder.make r,
       2: emit.text 'text'
       5: emit.attribute 'src'
