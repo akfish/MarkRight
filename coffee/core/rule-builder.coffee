@@ -15,17 +15,24 @@ module.exports =
 class RuleBuilder
   constructor: ->
     @_aliasMap = {}
+    @_subRules = {}
 
   declareAlias: (alias, regex) ->
     # TODO: check for duplication
     @_aliasMap[alias] = regex
+
+  declareSubRule: (name, rule, capture_map) ->
+    # TODO: check for name duplication
+    compiled = @_compileRule(rule, capture_map)
+    @_subRules[name] = compiled
 
   # @private
   #
   # Get the string representation of a regex part for concatenatiion.
   #
   # @overload _getRegexPart(alias_or_literal)
-  #   The argument is searched in the alias map first. If no match is found, it
+  #   The argument is searched in the alias map first, then in the sub-rule map.
+  #   If no match is found, it
   #   is then considered as a literal regex source string.
   #   The literal string will be escaped. For example, `'^[()]'` is processed to
   #   `/\^\[\(\)\]/`.
@@ -34,15 +41,19 @@ class RuleBuilder
   #   @param [RegExp] regex
   # @return [string] Regex part's string source
   _getRegexPart: (r) ->
+    escape_r = /[-\/\\^$*+?.()|[\]{}]/g
     t = typeof r
     if t == 'string'
       if r of @_aliasMap
         # Alias
-        return @_aliasMap[r]
+        return {type: 'alias', rule: @_aliasMap[r]}
+      if r of @_subRules
+        # Sub-rule
+        return {type: 'sub', rule: @_subRules[r]}
       # Literal
-      return r.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+      return {type: 'literal', rule: r.replace(escape_r, '\\$&')}
     else if t == 'object' and r instanceof RegExp
-      return r.source
+      return {type: 'regex', rule: r.source}
     throw new TypeError("#{r} is not a valid alias name, string or RegExp")
 
   _makeMatchHandler: (token_defs) ->
@@ -55,10 +66,12 @@ class RuleBuilder
         node[d.id] = payload
         # TODO: use node.attachXxx accroding to d.type field
 
-
-  # @param {RegExp} rule
+  # @private
+  # Compile rules
+  # @param {Array<RegExp|string>} rule
   # @param {Object} capture_map
-  make: (rule, capture_map) ->
+  # @return {Object}
+  _compileRule: (rule, capture_map) ->
     regex_src = ''
     group_index = 0
     token_defs = []
@@ -71,35 +84,65 @@ class RuleBuilder
       could_capture = token_def?
 
       part = @_getRegexPart(r)
-      if could_capture
-        lazy_leaving = in_optional_group and not token_def.optional?
-        optional_changing = (token_def.optional ? false) != in_optional_group
-        if lazy_leaving or optional_changing
-          if not in_optional_group
-            # false -> true, entering optional group
-            group_index++
-            in_optional_group = true
-          else
-            # true -> false, leaving optional group
-            in_optional_group = false
-            regex_src += "(#{current_optional_group})?"
-            current_optional_group = ""
-        if token_def.type != Def.Nothing
-          group_index++
-          part = "(#{part})"
-          token_defs.push token_def
-          token_def.group_index = group_index
-      else if in_optional_group
-        # true -> false, leaving optional group
-        in_optional_group = false
-        regex_src += "(#{current_optional_group})?"
-        current_optional_group = ""
-      if in_optional_group
-        current_optional_group += part
+      part_src = part.rule
+
+      if part.type == 'sub'
+        if could_capture
+          err = new TypeError("Sub-rules cannot be re-captured")
+          err.ruleName = r
+          err.ruleIndex = i
+          throw err
+        regex_src += part.rule.regex.source
+        # Flatten part.token_defs
+        base_group_index = group_index
+        for sub_def in part.rule.token_defs
+          copied = Def.clone(sub_def)
+          current_group_index = base_group_index + sub_def.group_index
+          copied.group_index = current_group_index
+          group_index = current_group_index
+          token_defs.push copied
       else
-        regex_src += part
+        if could_capture
+          lazy_leaving = in_optional_group and not token_def.optional?
+          optional_changing = (token_def.optional ? false) != in_optional_group
+          if lazy_leaving or optional_changing
+            if not in_optional_group
+              # false -> true, entering optional group
+              group_index++
+              in_optional_group = true
+            else
+              # true -> false, leaving optional group
+              in_optional_group = false
+              regex_src += "(#{current_optional_group})?"
+              current_optional_group = ""
+          if token_def.type != Def.Nothing
+            group_index++
+            part_src = "(#{part.rule})"
+            token_defs.push token_def
+            token_def.group_index = group_index
+        else if in_optional_group
+          # true -> false, leaving optional group
+          in_optional_group = false
+          regex_src += "(#{current_optional_group})?"
+          current_optional_group = ""
+        # Accumulate source
+        if in_optional_group
+          current_optional_group += part_src
+        else
+          regex_src += part_src
+
+    compiled =
+      regex: new RegExp(regex_src)
+      token_defs: token_defs
+
+    return compiled
+
+  # @param {Array<RegExp|string>} rule
+  # @param {Object} capture_map
+  make: (rule, capture_map) ->
+    compiled = @_compileRule(rule, capture_map)
 
     result =
-      regex: new RegExp(regex_src)
-      handler: @_makeMatchHandler(token_defs)
+      regex: compiled.regex
+      handler: @_makeMatchHandler(compiled.token_defs)
     return result

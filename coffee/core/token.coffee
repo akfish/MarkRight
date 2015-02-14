@@ -78,7 +78,14 @@ class TokenDef
   @Text: 'text'
   @Delimiter: 'delimiter'
   @Nothing: 'nothing'
-  
+
+  @clone: (another) ->
+    copied = new TokenDef(another.type, another.id, another.transform)
+    for key, value of another
+      if another.hasOwnProperty(key)
+        copied[key] = value
+    return copied
+
   constructor: (@type, @id, @transform, modifiers) ->
     if modifiers?
       for key, value of modifiers
