@@ -26,12 +26,12 @@ describe 'Language Rule Builder', ->
     expect(r_2).to.be 'not_an_alias'
     expect(r_3).to.be 'regex'
 
-  it "shoud support sub rules"#, ->
-    # builder.addSubRule 'LINK_DESC', [/[^\s]*/, /\s"/, '.*', /"/],
-    #   1: emit.attribute 'src'
-    #   2: emit.optional.nothing()
-    #   3: emit.optional.attribute 'title'
-    #   4: emit.optional.nothing()
+  it "shoud support sub rules", ->
+    builder.declareSubRule 'LINK_DESC', ['(', /[^\s]*/, /\s"/, '.*', /"/, ')'],
+      2: emit.attribute 'src'
+      3: emit.optional.nothing()
+      4: emit.optional.attribute 'title'
+      5: emit.optional.nothing()
 
   it "should support optional group", ->
     expected_source = '\\[(.*)\\]\\(([^\\s]*)(\\s"(.*)")?\\)'
@@ -47,7 +47,13 @@ describe 'Language Rule Builder', ->
     expect(link_rule.handler).to.be.a('function')
     expect(link_rule.regex.source).to.be(expected_source)
 
-  it "should support alternative rules"
+  it "should support alternative rules", ->
+    builder.declareSubRule 'LINK_ID', ['[', /[^\s]*/, ']'],
+      2: emit.attribute 'ref'
+
+    link_rule_alt = builder.make ['[', /.*/, ']',['LINK_ID', 'LINK_DESC']],
+      1: emit.attribute 'src'
+
   it "should handle delimiter pair"
 
   describe 'Built rule', ->
