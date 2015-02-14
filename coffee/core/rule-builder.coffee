@@ -54,11 +54,20 @@ class RuleBuilder
         return {type: 'sub', rule: @_subRules[r]}
       # Literal
       return {type: 'literal', rule: r.replace(escape_r, '\\$&')}
-    else if t == 'object' and r instanceof RegExp
-      return {type: 'regex', rule: r.source}
-    else if t == 'array'
-      throw new Error("Not implemented")
-    throw new TypeError("#{r} is not a valid alias name, string or RegExp")
+    else if t == 'object'
+      if r instanceof RegExp
+        return {type: 'regex', rule: r.source}
+      else if Array.isArray(r)
+        rules = []
+        sources = []
+        for alt in r
+          if not alt of @_subRules
+            throw new TypeError("'alt' is not a valid sub-rule name.")
+          rule = @_subRules[alt]
+          rules.push rule
+          sources.push rule.regex.source
+        return {type: 'alt', rules: rules, sources: sources}
+    throw new TypeError("'#{r}' is not a valid alias name, string or RegExp")
 
   _makeMatchHandler: (token_defs) ->
     return (node, matches) ->
@@ -90,7 +99,24 @@ class RuleBuilder
       part = @_getRegexPart(r)
       part_src = part.rule
 
-      if part.type == 'sub'
+      if part.type == 'alt'
+        if could_capture
+          err = new TypeError("Alternative rules cannot be re-captured")
+          err.ruleName = r
+          err.ruleIndex = i
+          throw err
+
+        regex_src += "(?:#{part.sources.join('|')})"
+        for alt_rule in part.rules
+          base_group_index = group_index
+          for alt_def in alt_rule.token_defs
+            copied = Def.clone(alt_def)
+            current_group_index = base_group_index + alt_def.group_index
+            copied.group_index = current_group_index
+            group_index = current_group_index
+            token_defs.push copied
+
+      else if part.type == 'sub'
         if could_capture
           err = new TypeError("Sub-rules cannot be re-captured")
           err.ruleName = r

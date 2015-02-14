@@ -7,6 +7,36 @@ Emitter = require '../lib/core/emitter'
 link_rule_expected_source = '\\[(.*)\\]\\(([^\\s]*)(?:\\s"(.*)")?\\)'
 link_text = '[CatX](http://catx.me)'
 link_text_with_optional = '[CatX](http://catx.me "AKFish\'s blog")'
+link_text_by_ref = '[CatX][catx_me]'
+link_expected =
+  text: 'CatX'
+  src: 'http://catx.me'
+  title: undefined
+link_with_optional_expected =
+  text: 'CatX'
+  src: 'http://catx.me'
+  title: 'AKFish\'s blog'
+
+link_alt_expected =
+  ref: undefined
+  text: 'CatX'
+  src: 'http://catx.me'
+  title: undefined
+link_alt_by_ref_expected =
+  ref: 'catx_me'
+  text: 'CatX'
+  src: undefined
+  title: undefined
+link_alt_with_optional_expected =
+  ref: undefined
+  text: 'CatX'
+  src: 'http://catx.me'
+  title: 'AKFish\'s blog'
+
+heading_text = '#### This is a heading'
+heading_expected =
+  level: 4
+  title: 'This is a heading'
 
 describe 'Language Rule Builder', ->
   emit = new Emitter()
@@ -15,6 +45,7 @@ describe 'Language Rule Builder', ->
   heading_rule = null
   link_rule = null
   link_sub_rule = null
+  link_rule_alt = null
 
   it "should build rule", ->
     heading_rule = builder.make [/#{1,6}/, /\s/, /.*/],
@@ -35,7 +66,7 @@ describe 'Language Rule Builder', ->
     expect(r_3.rule).to.be 'regex'
     expect(r_3.type).to.be 'regex'
 
-  it "shoud support sub rules", ->
+  it "should support sub rules", ->
     builder.declareSubRule 'LINK_LABEL', ['[', /.*/, ']'],
       2: emit.text 'text'
 
@@ -82,21 +113,20 @@ describe 'Language Rule Builder', ->
       2: emit.attribute 'ref'
 
     link_rule_alt = builder.make ['[', /.*/, ']',['LINK_ID', 'LINK_DESC']],
-      1: emit.attribute 'src'
+      2: emit.attribute 'text'
+
+    expect(link_rule_alt.regex).to.be.a(RegExp)
+    expect(link_rule_alt.handler).to.be.a('function')
 
   it "should handle delimiter pair"
 
   describe 'Built rule', ->
     it "should work", ->
-      heading_text = '#### This is a heading'
       m = heading_rule.regex.exec(heading_text)
       expect(m).not.to.be(null)
-      node = {}
-      heading_rule.handler(node, m)
-      expect(node).to.have.property('level')
-      expect(node).to.have.property('title')
-      expect(node.level).to.equal(4)
-      expect(node.title).to.equal('This is a heading')
+      heading = {}
+      heading_rule.handler(heading, m)
+      expect(heading).to.eql(heading_expected)
 
     it "should work with optional group", ->
       m1 = link_rule.regex.exec(link_text)
@@ -108,21 +138,8 @@ describe 'Language Rule Builder', ->
       link_rule.handler(link, m1)
       link_rule.handler(link_with_optional, m2)
 
-      expect(link).to.have.property('text')
-      expect(link).to.have.property('src')
-      expect(link).to.have.property('title')
-
-      expect(link_with_optional).to.have.property('text')
-      expect(link_with_optional).to.have.property('src')
-      expect(link_with_optional).to.have.property('title')
-
-      expect(link.text).to.be('CatX')
-      expect(link.src).to.be('http://catx.me')
-      expect(link.title).to.be(undefined)
-
-      expect(link_with_optional.text).to.be('CatX')
-      expect(link_with_optional.src).to.be('http://catx.me')
-      expect(link_with_optional.title).to.be("AKFish's blog")
+      expect(link).to.eql(link_expected)
+      expect(link_with_optional).to.eql(link_with_optional_expected)
 
     it "should work with sub rule", ->
       m1 = link_sub_rule.regex.exec(link_text)
@@ -134,18 +151,22 @@ describe 'Language Rule Builder', ->
       link_sub_rule.handler(link, m1)
       link_sub_rule.handler(link_with_optional, m2)
 
-      expect(link).to.have.property('text')
-      expect(link).to.have.property('src')
-      expect(link).to.have.property('title')
+      expect(link).to.eql(link_expected)
+      expect(link_with_optional).to.eql(link_with_optional_expected)
 
-      expect(link_with_optional).to.have.property('text')
-      expect(link_with_optional).to.have.property('src')
-      expect(link_with_optional).to.have.property('title')
+    it "should work with alternative rule", ->
+      m1 = link_rule_alt.regex.exec(link_text)
+      m2 = link_rule_alt.regex.exec(link_text_with_optional)
+      m3 = link_rule_alt.regex.exec(link_text_by_ref)
 
-      expect(link.text).to.be('CatX')
-      expect(link.src).to.be('http://catx.me')
-      expect(link.title).to.be(undefined)
+      link = {}
+      link_with_optional = {}
+      link_by_ref = {}
 
-      expect(link_with_optional.text).to.be('CatX')
-      expect(link_with_optional.src).to.be('http://catx.me')
-      expect(link_with_optional.title).to.be("AKFish's blog")
+      link_rule_alt.handler(link, m1)
+      link_rule_alt.handler(link_with_optional, m2)
+      link_rule_alt.handler(link_by_ref, m3)
+
+      expect(link).to.eql(link_alt_expected)
+      expect(link_with_optional).to.eql(link_alt_with_optional_expected)
+      expect(link_by_ref).to.eql(link_alt_by_ref_expected)
