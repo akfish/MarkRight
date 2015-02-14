@@ -37,6 +37,8 @@ class RuleBuilder
   #   The literal string will be escaped. For example, `'^[()]'` is processed to
   #   `/\^\[\(\)\]/`.
   #   @param [string] alias_or_literal
+  # @overload _getRegexPart(alternatives)
+  #   @param [Array<string>] alternatives An array of sub-rule names
   # @overload _getRegexPart(regex)
   #   @param [RegExp] regex
   # @return [string] Regex part's string source
@@ -54,6 +56,8 @@ class RuleBuilder
       return {type: 'literal', rule: r.replace(escape_r, '\\$&')}
     else if t == 'object' and r instanceof RegExp
       return {type: 'regex', rule: r.source}
+    else if t == 'array'
+      throw new Error("Not implemented")
     throw new TypeError("#{r} is not a valid alias name, string or RegExp")
 
   _makeMatchHandler: (token_defs) ->
@@ -108,12 +112,13 @@ class RuleBuilder
           if lazy_leaving or optional_changing
             if not in_optional_group
               # false -> true, entering optional group
-              group_index++
+              # group_index++
               in_optional_group = true
             else
               # true -> false, leaving optional group
               in_optional_group = false
-              regex_src += "(#{current_optional_group})?"
+              # TODO: make capture/not-capture configuable
+              regex_src += "(?:#{current_optional_group})?"
               current_optional_group = ""
           if token_def.type != Def.Nothing
             group_index++
@@ -123,7 +128,7 @@ class RuleBuilder
         else if in_optional_group
           # true -> false, leaving optional group
           in_optional_group = false
-          regex_src += "(#{current_optional_group})?"
+          regex_src += "(?:#{current_optional_group})?"
           current_optional_group = ""
         # Accumulate source
         if in_optional_group

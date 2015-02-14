@@ -4,7 +4,7 @@ RuleBuilder = require '../lib/core/rule-builder'
 Emitter = require '../lib/core/emitter'
 
 # Consts
-link_rule_expected_source = '\\[(.*)\\]\\(([^\\s]*)(\\s"(.*)")?\\)'
+link_rule_expected_source = '\\[(.*)\\]\\(([^\\s]*)(?:\\s"(.*)")?\\)'
 link_text = '[CatX](http://catx.me)'
 link_text_with_optional = '[CatX](http://catx.me "AKFish\'s blog")'
 
@@ -36,6 +36,9 @@ describe 'Language Rule Builder', ->
     expect(r_3.type).to.be 'regex'
 
   it "shoud support sub rules", ->
+    builder.declareSubRule 'LINK_LABEL', ['[', /.*/, ']'],
+      2: emit.text 'text'
+
     builder.declareSubRule 'LINK_DESC', ['(', /[^\s]*/, /\s"/, /.*/, /"/, ')'],
       2: emit.attribute 'src'
       3: emit.optional.nothing()
@@ -52,8 +55,10 @@ describe 'Language Rule Builder', ->
     expect(rule.regex).to.be.a RegExp
     expect(rule.token_defs).to.be.an 'array'
 
-    link_sub_rule = builder.make ['[', /.*/, ']', 'LINK_DESC'],
-      2: emit.text 'text'
+    # link_sub_rule = builder.make ['[', /.*/, ']', 'LINK_DESC'],
+      # 2: emit.text 'text'
+
+    link_sub_rule = builder.make ['LINK_LABEL', 'LINK_DESC']
 
     expect(link_sub_rule.regex).to.be.a(RegExp)
     expect(link_sub_rule.handler).to.be.a('function')
