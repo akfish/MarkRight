@@ -130,7 +130,8 @@
 module.exports =
 class Parser
   # Create a {Parser} instance
-  constructor: ->
+  # @param {RuleManager} rules A {RuleManager} instance
+  constructor: (@rules) ->
 
   # Parse Markdown source into AST
   # @param {string} src Markdown source

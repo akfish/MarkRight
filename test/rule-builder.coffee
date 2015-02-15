@@ -38,7 +38,7 @@ heading_expected =
   level: 4
   title: 'This is a heading'
 
-describe 'Language Rule Builder', ->
+describe 'Rule Builder', ->
   emit = new Emitter()
   builder = new RuleBuilder()
   builder.declareAlias 'alias_1', 'foo'

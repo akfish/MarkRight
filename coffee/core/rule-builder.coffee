@@ -165,7 +165,7 @@ class RuleBuilder
     compiled =
       regex: new RegExp(regex_src)
       token_defs: token_defs
-
+    
     return compiled
 
   # @param {Array<RegExp|string>} rule
