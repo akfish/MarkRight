@@ -16,4 +16,10 @@ describe "CommonMark Spec (Total: #{specs.count })", ->
     it "#{name} (#{suit.length})" , ->
       for test in tests
         actual = mr.compile(test.md)
-        expect(actual).to.equal(test.html)
+        try
+          expect(actual).to.equal(test.html)
+        catch error
+          error.showDiff = true
+          error.expected = test.html
+          error.actual = actual
+          throw error
