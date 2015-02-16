@@ -1,5 +1,4 @@
-expect = require 'expect.js'
-path = require 'path'
+expect = require('./get-expect')()
 RuleManager = require '../lib/core/rule-manager'
 Core = require '../lib/lang/core'
 Parser = require '../lib/compiler/parser'

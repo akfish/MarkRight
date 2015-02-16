@@ -1,4 +1,6 @@
 fs = require 'fs'
+mkdirp = require 'mkdirp'
+path = require 'path'
 test_regex = /^\.\n([\s\S]*?)^\.\n([\s\S]*?)^\.$|^#{1,6} *(.*)$/gm
 
 parse_spec = (src) ->
@@ -48,6 +50,19 @@ loadSync = (spec_file) ->
   # console.log "Loaded #{tests.length} specs"
   return specs
 
+loadAndSave = (spec_file, dst_json, cb) ->
+  load spec_file, (err, data) ->
+    if err?
+      cb? err
+      return
+    dst_dir = path.dirname(dst_json)
+    mkdirp dst_dir, (err) ->
+      if err?
+        cb? err
+        return
+      fs.writeFile dst_json, "module.exports = " + JSON.stringify(data), cb
+
 module.exports =
   load: load
   loadSync: loadSync
+  loadAndSave: loadAndSave

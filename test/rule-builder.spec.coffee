@@ -1,5 +1,4 @@
-expect = require 'expect.js'
-path = require 'path'
+expect = require('./get-expect')()
 RuleBuilder = require '../lib/core/rule-builder'
 Emitter = require '../lib/core/emitter'
 
@@ -51,7 +50,7 @@ describe 'Rule Builder', ->
     heading_rule = builder.make [/#{1,6}/, /\s/, /.*/],
       1: emit.attribute 'level', (h) -> h.length
       3: emit.content 'title'
-    expect(heading_rule.regex).to.be.a(RegExp)
+    expect(heading_rule.regex).to.be.an.instanceof(RegExp)
     expect(heading_rule.handler).to.be.a('function')
 
   it "should support alias", ->
@@ -59,12 +58,12 @@ describe 'Rule Builder', ->
     r_2 = builder._getRegexPart 'not_an_alias'
     r_3 = builder._getRegexPart /regex/
 
-    expect(r_1.rule).to.be 'foo'
-    expect(r_1.type).to.be 'alias'
-    expect(r_2.rule).to.be 'not_an_alias'
-    expect(r_2.type).to.be 'literal'
-    expect(r_3.rule).to.be 'regex'
-    expect(r_3.type).to.be 'regex'
+    expect(r_1.rule).to.equal 'foo'
+    expect(r_1.type).to.equal 'alias'
+    expect(r_2.rule).to.equal 'not_an_alias'
+    expect(r_2.type).to.equal 'literal'
+    expect(r_3.rule).to.equal 'regex'
+    expect(r_3.type).to.equal 'regex'
 
   it "should support sub rules", ->
     builder.declareSubRule 'LINK_LABEL', ['[', /.*/, ']'],
@@ -79,21 +78,21 @@ describe 'Rule Builder', ->
     part = builder._getRegexPart 'LINK_DESC'
     rule = part.rule
 
-    expect(part.type).to.be 'sub'
+    expect(part.type).to.equal 'sub'
     expect(rule).to.be.an 'object'
     expect(rule).to.have.property 'regex'
+      .that.is.an.instanceof RegExp
     expect(rule).to.have.property 'token_defs'
-    expect(rule.regex).to.be.a RegExp
-    expect(rule.token_defs).to.be.an 'array'
+      .that.is.an 'array'
 
     # link_sub_rule = builder.make ['[', /.*/, ']', 'LINK_DESC'],
       # 2: emit.text 'text'
 
     link_sub_rule = builder.make ['LINK_LABEL', 'LINK_DESC']
 
-    expect(link_sub_rule.regex).to.be.a(RegExp)
+    expect(link_sub_rule.regex).to.be.an.instanceof(RegExp)
     expect(link_sub_rule.handler).to.be.a('function')
-    expect(link_sub_rule.regex.source).to.be(link_rule_expected_source)
+    expect(link_sub_rule.regex.source).to.equal(link_rule_expected_source)
 
   it "should support optional group", ->
     r = ['[', /.*/, ']', '(', /[^\s]*/, /\s"/, /.*/, '"', ')']
@@ -104,9 +103,9 @@ describe 'Rule Builder', ->
       7: emit.optional.attribute 'title'
       8: emit.optional.nothing()
 
-    expect(link_rule.regex).to.be.a(RegExp)
+    expect(link_rule.regex).to.be.an.instanceof(RegExp)
     expect(link_rule.handler).to.be.a('function')
-    expect(link_rule.regex.source).to.be(link_rule_expected_source)
+    expect(link_rule.regex.source).to.equal(link_rule_expected_source)
 
   it "should support alternative rules", ->
     builder.declareSubRule 'LINK_ID', ['[', /[^\s]*/, ']'],
@@ -115,7 +114,7 @@ describe 'Rule Builder', ->
     link_rule_alt = builder.make ['[', /.*/, ']',['LINK_ID', 'LINK_DESC']],
       2: emit.attribute 'text'
 
-    expect(link_rule_alt.regex).to.be.a(RegExp)
+    expect(link_rule_alt.regex).to.be.an.instanceof(RegExp)
     expect(link_rule_alt.handler).to.be.a('function')
 
   it "should handle delimiter pair"
@@ -123,7 +122,7 @@ describe 'Rule Builder', ->
   describe 'Built rule', ->
     it "should work", ->
       m = heading_rule.regex.exec(heading_text)
-      expect(m).not.to.be(null)
+      expect(m).not.to.equal(null)
       heading = {}
       heading_rule.handler(heading, m)
       expect(heading).to.eql(heading_expected)

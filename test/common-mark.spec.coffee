@@ -1,9 +1,5 @@
-expect = require 'expect.js'
-path = require 'path'
-Loader = require '../lib/util/spec-loader'
-
-spec_file = 'node_modules/commonmark/test/spec.txt'
-specs = Loader.loadSync spec_file
+expect = require('./get-expect')()
+specs = require ('../spec/commonmark')
 
 Markright = require '../lib/markright'
 mr = Markright.Default

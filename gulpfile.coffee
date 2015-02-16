@@ -9,6 +9,8 @@ browserify  = require 'gulp-browserify'
 mocha       = require 'gulp-mocha'
 rename      = require 'gulp-rename'
 del         = require 'del'
+karma       = require('karma').server
+expect      = require 'expect.js'
 
 # Source map support
 require('source-map-support').install()
@@ -18,7 +20,7 @@ require('source-map-support').install()
 
 # Sources
 coffee_src    = './coffee/**/*.coffee'
-test_src     = './test/**/*.coffee'
+test_src     = './test/**/*.spec.coffee'
 
 # Destinations
 lib_dst       = 'lib/'
@@ -46,11 +48,18 @@ gulp.task 'coffee', ->
 gulp.task 'watch', ->
   watch_sources()
 
-gulp.task 'test', ['coffee', 'browser'], ->
+gulp.task 'test', ['prepare-spec', 'coffee', 'browser'], ->
   gulp.src test_src, read: false
     .pipe mocha(
       reporter: 'spec'
+      globals: ['expect']
     )
+
+gulp.task 'test-browser', ['prepare-spec', 'coffee', 'browser'], (done) ->
+  karma.start
+    configFile: __dirname + '/karma.conf.coffee'
+    singleRun: true
+    , done
 
 gulp.task 'browser', ['coffee'], ->
   gulp.src 'coffee/markright.coffee', read: false
@@ -62,4 +71,11 @@ gulp.task 'browser', ['coffee'], ->
     .pipe rename('markright.js')
     .pipe gulp.dest(browser_dst)
 
+spec_src = 'node_modules/commonmark/test/spec.txt'
+spec_dst = './spec/commonmark.js'
+
+gulp.task 'prepare-spec', (done) ->
+  {loadAndSave} = require './dev-util/spec-loader'
+  loadAndSave spec_src, spec_dst, done
+  
 gulp.task 'default', ['coffee', 'browser', 'test']
