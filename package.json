@@ -2,9 +2,14 @@
   "name": "markright",
   "version": "0.0.0",
   "description": "Markdown parser done right",
-  "main": "index.js",
+  "main": "lib/markright.js",
   "scripts": {
     "test": "gulp test"
+  },
+  "repository" :
+  {
+    "type": "git",
+    "url": "https://github.com/akfish/MarkRight"
   },
   "author": "",
   "license": "BSD-2-Clause",

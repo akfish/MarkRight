@@ -1,6 +1,7 @@
 # MarkRight
 
 A flexible and fast Markdown parser built for advanced Markdown editor developing.
+(still in working progress)
 
 ## Design Goals
 
